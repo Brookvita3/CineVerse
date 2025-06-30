@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    command:
+      - '--api.dashboard=true'
+      - '--log.level=DEBUG'
+      - '--providers.docker=true'
+      - '--entrypoints.web.address=:80'
+    ports:
+      - '80:80'
+      - '8080:8080'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+
+  movie-service:
+    build: ./movie-service
+    container_name: movie-service
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.movie-service.rule=PathPrefix(`/movies`)'
+      - 'traefik.http.routers.movie-service.entrypoints=web'
+      - 'traefik.http.services.movie-service.loadbalancer.server.port=8080'
+    expose:
+      - '8080'
