@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Upload Movie to MinIO</title>
+  </head>
+  <body>
+    <h2>🎬 Upload Movie to MinIO (with backend + signed URL)</h2>
+
+    <input type="file" id="fileInput" accept="video/mp4" />
+    <button onclick="uploadMovie()">Upload</button>
+
+    <p id="status"></p>
+
+    <script>
+      async function uploadMovie() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (!file) {
+          alert('Please select a video file!');
+          return;
+        }
+
+        const requestBody = {
+          title: 'Interstellar',
+          description: 'A science fiction movie about space and time travel.',
+          releaseDate: '2014-11-07T00:00:00Z',
+          genres: ['ACTION', 'DRAMA'],
+          actorIds: ['actor123', 'actor456'],
+          thumbnailUrl:
+            'http://localhost:9000/movies/thumbnails/interstellar.jpg',
+          videoFileName: file.name,
+          isPublic: true,
+        };
+
+        const backendRes = await fetch('http://localhost:8080/movies/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!backendRes.ok) {
+          document.getElementById('status').innerText =
+            '❌ Failed to create movie or get signed URL';
+          return;
+        }
+
+        const data = await backendRes.json();
+
+        const signedUrl = data.uploadUrl;
+
+        const uploadRes = await fetch(signedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type,
+          },
+        });
+
+        if (uploadRes.ok) {
+          document.getElementById('status').innerText =
+            '✅ Movie uploaded successfully!';
+        } else {
+          document.getElementById('status').innerText =
+            '❌ Failed to upload video file to MinIO!';
+        }
+      }
+    </script>
+  </body>
+</html>

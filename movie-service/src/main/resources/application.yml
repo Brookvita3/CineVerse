@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: movie-service
+
+streaming-service:
+  base-url: ${STREAM_URL}

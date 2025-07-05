@@ -2,7 +2,6 @@ package com.cineverse.movie_service.domain.model;
 
 import com.cineverse.movie_service.dto.request.UpdateMovieRequest;
 import com.cineverse.movie_service.dto.request.UploadMovieRequest;
-import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -35,8 +34,8 @@ public class Movie {
     private Instant updatedAt;
 
     private Movie(String title, String description, Instant releaseDate,
-                 List<Gerne> genres, List<String> actorIds,
-                 String thumbnailUrl, String videoFileName, Boolean isPublic) {
+            List<Gerne> genres, List<String> actorIds,
+            String thumbnailUrl, String videoFileName, Boolean isPublic) {
 
         this.id = UUID.randomUUID().toString();
         this.title = title;
@@ -91,6 +90,5 @@ public class Movie {
             this.isPublic = request.getIsPublic();
         }
     }
-
 
 }

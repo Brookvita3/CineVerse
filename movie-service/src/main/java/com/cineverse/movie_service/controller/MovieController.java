@@ -27,10 +27,10 @@ public class MovieController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadMovie(@RequestBody @Valid UploadMovieRequest request) {
 
-        Movie updated =  movieService.uploadMovie(request);
+        String signedUrl =  movieService.uploadMovie(request);
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(movieMaper.fromMovie(updated));
+                .body(signedUrl);
     }
 
     @PutMapping("/update")
