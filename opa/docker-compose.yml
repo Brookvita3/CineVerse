@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  opa:
+    image: openpolicyagent/opa:latest
+    container_name: opa
+    command:
+      - 'run'
+      - '--server'
+      - '--log-level=debug'
+      - '--set=decision_logs.console=true'
+      - '--addr=0.0.0.0:8181'
+      - '/policy'
+    volumes:
+      - ./policies:/policy
+    ports:
+      - 8181:8181
