@@ -1,0 +1,33 @@
+http:
+  routers:
+    authen:
+      rule: PathPrefix(`/auth`)
+      service: auth-service
+      entryPoints:
+        - web
+    login:
+      rule: PathPrefix(`/login`)
+      service: auth-service
+      entryPoints:
+        - web
+    ping:
+      rule: 'PathPrefix(`/ping`)'
+      entryPoints:
+        - web
+      service: auth-service
+      middlewares:
+        - forward-auth
+
+  services:
+    auth-service:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:9090
+
+  middlewares:
+    forward-auth:
+      forwardAuth:
+        address: http://host.docker.internal:9090/auth
+        trustForwardHeader: true
+        authResponseHeaders:
+          - 'X-User'
