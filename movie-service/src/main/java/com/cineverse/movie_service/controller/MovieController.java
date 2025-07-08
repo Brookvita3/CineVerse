@@ -1,9 +1,8 @@
 package com.cineverse.movie_service.controller;
 
 import com.cineverse.movie_service.domain.model.Movie;
-import com.cineverse.movie_service.dto.mapper.MovieMaper;
-import com.cineverse.movie_service.dto.request.UpdateMovieRequest;
-import com.cineverse.movie_service.dto.request.UploadMovieRequest;
+import com.cineverse.movie_service.application.command.UpdateMovieCommand;
+import com.cineverse.movie_service.application.command.UploadMovieCommand;
 import com.cineverse.movie_service.service.MovieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,13 +10,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/movies")
 public class MovieController {
 
     private final MovieService movieService;
-    private final MovieMaper movieMaper;
 
     @GetMapping("/ping")
     public String ping() {
@@ -25,7 +25,7 @@ public class MovieController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadMovie(@RequestBody @Valid UploadMovieRequest request) {
+    public ResponseEntity<?> uploadMovie(@RequestBody @Valid UploadMovieCommand request) {
 
         String signedUrl =  movieService.uploadMovie(request);
 
@@ -35,13 +35,22 @@ public class MovieController {
 
     @PutMapping("/update")
     public ResponseEntity<?> updateMovie(
-            @PathVariable String movieId,
-            @RequestBody @Valid UpdateMovieRequest request) {
+            @PathVariable UUID movieId,
+            @RequestBody @Valid UpdateMovieCommand request) {
 
         movieService.updateMovie(movieId, request);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body("update successfully");
+    }
+
+    @PutMapping("/{id}/mark-ready")
+    public ResponseEntity<?> markReady(@PathVariable UUID id) {
+
+        Movie movie = movieService.markReady(id);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(movie);
     }
 
 }

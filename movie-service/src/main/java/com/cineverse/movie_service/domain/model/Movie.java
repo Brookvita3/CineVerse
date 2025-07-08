@@ -1,17 +1,23 @@
 package com.cineverse.movie_service.domain.model;
 
-import com.cineverse.movie_service.dto.request.UpdateMovieRequest;
-import com.cineverse.movie_service.dto.request.UploadMovieRequest;
+import com.cineverse.movie_service.dto.MovieDTO;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 @Getter
+@Entity
+@NoArgsConstructor
+@Table(name = "movie")
 public class Movie {
 
-    private final String id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     private String title;
 
@@ -19,9 +25,18 @@ public class Movie {
 
     private Instant releaseDate;
 
-    private List<Gerne> genres;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private List<Genre> genres;
 
-    private List<String> actorIds;
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
+    @ManyToMany
+    @JoinTable(name = "movie_actor",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "actor_id"))
+    private List<Actor> actors;
 
     private String thumbnailUrl;
 
@@ -29,66 +44,83 @@ public class Movie {
 
     private Boolean isPublic;
 
-    private final Instant createdAt;
+    private Instant createdAt;
 
     private Instant updatedAt;
 
     private Movie(String title, String description, Instant releaseDate,
-            List<Gerne> genres, List<String> actorIds,
-            String thumbnailUrl, String videoFileName, Boolean isPublic) {
-
-        this.id = UUID.randomUUID().toString();
+                  List<Genre> genres, List<Actor> actors,
+                  String thumbnailUrl, String videoFileName, Boolean isPublic) {
         this.title = title;
         this.description = description;
         this.releaseDate = releaseDate;
         this.genres = genres;
-        this.actorIds = actorIds;
+        this.actors = actors;
         this.thumbnailUrl = thumbnailUrl;
         this.videoFileName = videoFileName;
         this.isPublic = isPublic;
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
-
+        this.status = Status.PENDING;
     }
 
-    public static Movie create(UploadMovieRequest request) {
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
+
+    public static Movie upload(MovieDTO dto) {
         return new Movie(
-                request.title,
-                request.description,
-                request.releaseDate,
-                request.genres,
-                request.actorIds,
-                request.thumbnailUrl,
-                request.videoFileName,
-                request.isPublic
+                dto.title,
+                dto.description,
+                dto.releaseDate,
+                dto.genres,
+                dto.actors,
+                dto.thumbnailUrl,
+                dto.movieFileName,
+                dto.isPublic
         );
     }
 
-    public void update(UpdateMovieRequest request) {
-        if (request.getTitle() != null) {
-            this.title = request.getTitle();
+    public void update(MovieDTO dto) {
+        if (dto.getTitle() != null) {
+            this.title = dto.getTitle();
         }
-        if (request.getDescription() != null) {
-            this.description = request.getDescription();
+        if (dto.getDescription() != null) {
+            this.description = dto.getDescription();
         }
-        if (request.getReleaseDate() != null) {
-            this.releaseDate = request.getReleaseDate();
+        if (dto.getReleaseDate() != null) {
+            this.releaseDate = dto.getReleaseDate();
         }
-        if (request.getGenres() != null) {
-            this.genres = request.getGenres();
+        if (dto.getGenres() != null) {
+            this.genres = dto.getGenres();
         }
-        if (request.getActorIds() != null) {
-            this.actorIds = request.getActorIds();
+        if (dto.getActors() != null) {
+            this.actors = dto.getActors();
         }
-        if (request.getThumbnailUrl() != null) {
-            this.thumbnailUrl = request.getThumbnailUrl();
+        if (dto.getThumbnailUrl() != null) {
+            this.thumbnailUrl = dto.getThumbnailUrl();
         }
-        if (request.getVideoFileName() != null) {
-            this.videoFileName = request.getVideoFileName();
+        if (dto.getMovieFileName() != null) {
+            this.videoFileName = dto.getMovieFileName();
         }
-        if (request.getIsPublic() != null) {
-            this.isPublic = request.getIsPublic();
+        if (dto.getIsPublic() != null) {
+            this.isPublic = dto.getIsPublic();
         }
+    }
+
+    public void markReady() {
+        this.status = Status.READY;
+        this.updatedAt = Instant.now();
+    }
+
+    public void markFailed() {
+        this.status = Status.FAILED;
+        this.updatedAt = Instant.now();
     }
 
 }

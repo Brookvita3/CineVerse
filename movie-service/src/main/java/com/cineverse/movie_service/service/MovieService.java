@@ -1,54 +1,143 @@
 package com.cineverse.movie_service.service;
 
+import com.cineverse.movie_service.domain.model.Actor;
 import com.cineverse.movie_service.domain.model.Movie;
+import com.cineverse.movie_service.domain.repository.ActorRepository;
 import com.cineverse.movie_service.domain.repository.MovieRepository;
-import com.cineverse.movie_service.dto.request.UpdateMovieRequest;
-import com.cineverse.movie_service.dto.request.UploadMovieRequest;
+import com.cineverse.movie_service.application.command.UpdateMovieCommand;
+import com.cineverse.movie_service.application.command.UploadMovieCommand;
+import com.cineverse.movie_service.dto.MovieDTO;
 import com.cineverse.movie_service.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class MovieService {
 
     private final MovieRepository movieRepository;
+    private final ActorRepository actorRepository;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${streaming-service.base-url}")
     private String streamingServiceBaseUrl;
 
-    public String uploadMovie(UploadMovieRequest req) {
+    /**
+     * Uploads metadata for a new movie and returns a signed URL for uploading the
+     * video file.
+     * <p>
+     * This method performs the following steps:
+     * <ol>
+     * <li>Checks if a movie with the given title already exists.</li>
+     * <li>Creates a {@link Movie} entity from the provided
+     * {@link UploadMovieCommand}.</li>
+     * <li>Saves the movie metadata to the database with
+     * {@code MovieStatus.PENDING}.</li>
+     * <li>Calls the streaming service to obtain a signed URL for uploading the
+     * actual video file.</li>
+     * </ol>
+     *
+     * @param command the command object containing metadata for the new movie,
+     *                including title, description, release date, genres, actors,
+     *                thumbnail URL, video file name, and visibility.
+     *
+     * @return a signed URL as a {@link String} that can be used to upload the movie
+     *         file.
+     *
+     * @throws IllegalArgumentException if a movie with the same title already
+     *                                  exists.
+     * @throws RestClientException      if the request to the streaming service
+     *                                  fails.
+     */
+    public String uploadMovie(UploadMovieCommand command) {
 
-        if (movieRepository.existsByTitle(req.getTitle())) {
+        if (movieRepository.existsByTitle(command.getTitle())) {
             throw new IllegalArgumentException("Movie is already exist");
         }
 
-        Movie movie = Movie.create(req);
+        MovieDTO movieDTO = fromUploadMovieCommand(command);
 
-        String fileName = req.getVideoFileName();
+        Movie movie = Movie.upload(movieDTO);
+        movieRepository.save(movie);
+
+        String fileName = command.getMovieFileName();
         String signedUrlEndpoint = streamingServiceBaseUrl + "/signed-url/upload";
 
         Map<String, String> body = new HashMap<>();
         body.put("FileName", fileName);
-        body.put("ContentType", "mp4");
 
         return restTemplate.postForObject(signedUrlEndpoint, body, String.class);
     }
 
-    public void updateMovie(String movieId, UpdateMovieRequest req) {
+    public void updateMovie(UUID movieId, UpdateMovieCommand command) {
 
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new NotFoundException("Movie not found"));
 
-        movie.update(req);
+        MovieDTO movieDTO = fromUpdateMovieCommand(command);
+        movie.update(movieDTO);
 
         movieRepository.save(movie);
+    }
+
+    public Movie markReady(UUID movieId) {
+
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new NotFoundException("Movie not found"));
+
+        movie.markReady();
+        return movieRepository.save(movie);
+    }
+
+    private MovieDTO fromUploadMovieCommand(UploadMovieCommand command) {
+        if (command == null)
+            return null;
+        List<Actor> actors = command.getActorIds().stream()
+                .map(id -> actorRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException("Actor not found")))
+                .toList();
+
+        MovieDTO movieDTO = new MovieDTO();
+
+        movieDTO.setActors(actors);
+        movieDTO.setTitle(command.getTitle());
+        movieDTO.setDescription(command.getDescription());
+        movieDTO.setIsPublic(command.getIsPublic());
+        movieDTO.setThumbnailUrl(command.getThumbnailUrl());
+        movieDTO.setMovieFileName(command.getMovieFileName());
+        movieDTO.setReleaseDate(command.getReleaseDate());
+        movieDTO.setThumbnailUrl(command.getThumbnailUrl());
+
+        return movieDTO;
+    }
+
+    private MovieDTO fromUpdateMovieCommand(UpdateMovieCommand command) {
+        if (command == null)
+            return null;
+        List<Actor> actors = command.getActorIds().stream()
+                .map(id -> actorRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException("Actor not found")))
+                .toList();
+
+        MovieDTO movieDTO = new MovieDTO();
+
+        movieDTO.setActors(actors);
+        movieDTO.setTitle(command.getTitle());
+        movieDTO.setDescription(command.getDescription());
+        movieDTO.setIsPublic(command.getIsPublic());
+        movieDTO.setThumbnailUrl(command.getThumbnailUrl());
+        movieDTO.setMovieFileName(command.getMovieFileName());
+        movieDTO.setReleaseDate(command.getReleaseDate());
+        movieDTO.setThumbnailUrl(command.getThumbnailUrl());
+
+        return movieDTO;
     }
 
 }

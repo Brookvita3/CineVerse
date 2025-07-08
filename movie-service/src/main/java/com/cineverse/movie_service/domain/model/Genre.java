@@ -1,6 +1,6 @@
 package com.cineverse.movie_service.domain.model;
 
-public enum Gerne {
+public enum Genre {
     ACTION,
     DRAMA,
     COMEDY,

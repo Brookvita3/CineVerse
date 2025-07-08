@@ -12,8 +12,7 @@ import (
 )
 
 type UploadRequest struct {
-	FileName    string `json:"fileName" binding:"required"`
-	ContentType string `json:"contentType" binding:"required"`
+	FileName string `json:"fileName" binding:"required"`
 }
 
 type UploadResponse struct {

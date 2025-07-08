@@ -1,0 +1,1 @@
+INSERT INTO actor (id, name) VALUES (gen_random_uuid(), 'Robert Downey Jr.');
