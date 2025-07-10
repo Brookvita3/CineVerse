@@ -16,5 +16,9 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-streaming-service:
-  base-url: ${STREAM_URL}
+
+minio:
+  url: ${MINIO_URL}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  bucket: movies

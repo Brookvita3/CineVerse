@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface SpringDataMovieRepository extends JpaRepository<Movie, UUID> {
+public interface SpringDataMovieRepository extends JpaRepository<Movie, String> {
     boolean existsByTitle(String title);
 }

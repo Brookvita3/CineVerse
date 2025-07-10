@@ -7,62 +7,100 @@
   <body>
     <h2>🎬 Upload Movie to MinIO (with backend + signed URL)</h2>
 
-    <input type="file" id="fileInput" accept="video/mp4" />
+    <label>Title: <input type="text" id="title" /></label><br />
+    <label>Description: <input type="text" id="description" /></label><br />
+    <label>Release Date: <input type="datetime-local" id="releaseDate" /></label
+    ><br />
+    <label>Genres (comma separated): <input type="text" id="genres" /></label
+    ><br />
+    <label
+      >Actor IDs (comma separated): <input type="text" id="actorIds" /></label
+    ><br />
+    <label>Thumbnail URL: <input type="text" id="thumbnailUrl" /></label><br />
+    <label>Movie File Name: <input type="text" id="movieFileName" /></label
+    ><br />
+    <label>Public: <input type="checkbox" id="isPublic" /></label><br />
+    <label
+      >Video File:
+      <input type="file" id="fileInput" accept="video/mp4" /></label
+    ><br />
     <button onclick="uploadMovie()">Upload</button>
 
     <p id="status"></p>
 
     <script>
       async function uploadMovie() {
-        const fileInput = document.getElementById('fileInput');
-        const file = fileInput.files[0];
-
+        const file = document.getElementById('fileInput').files[0];
         if (!file) {
           alert('Please select a video file!');
           return;
         }
 
         const requestBody = {
-          title: 'Inception',
-          description: 'A mind-bending thriller about dreams within dreams.',
-          releaseDate: '2010-07-16T00:00:00Z',
-          genres: ['ACTION', 'HORROR'],
-          actorIds: ['f08e232f-0fe9-471b-b0ad-402c12418f33'],
-          thumbnailUrl: 'https://example.com/inception-thumbnail.jpg',
-          movieFileName: 'inception-1080p.mp4',
-          isPublic: true,
+          title: document.getElementById('title').value,
+          description: document.getElementById('description').value,
+          releaseDate: new Date(
+            document.getElementById('releaseDate').value
+          ).toISOString(),
+          genres: document
+            .getElementById('genres')
+            .value.split(',')
+            .map((s) => s.trim().toUpperCase()),
+          actorIds: document
+            .getElementById('actorIds')
+            .value.split(',')
+            .map((s) => s.trim()),
+          thumbnailUrl: document.getElementById('thumbnailUrl').value,
+          movieFileName: document.getElementById('movieFileName').value,
+          isPublic: document.getElementById('isPublic').checked,
         };
 
-        const backendRes = await fetch('http://localhost:8080/movies/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody),
-        });
+        try {
+          const backendRes1 = await fetch('http://localhost:8080/movies', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          });
 
-        if (!backendRes.ok) {
-          document.getElementById('status').innerText =
-            '❌ Failed to create movie or get signed URL';
-          return;
-        }
+          if (!backendRes1.ok) {
+            document.getElementById('status').innerText =
+              '❌ Failed to upload metada movie to backend';
+            return;
+          }
 
-        const data = await backendRes.json();
+          const data = await backendRes1.json();
+          const movieId = data.id;
+          const backendRes2 = await fetch(
+            `http://localhost:8080/movies/${movieId}/upload-url`,
+            {
+              method: 'POST',
+            }
+          );
+          if (!backendRes2.ok) {
+            document.getElementById('status').innerText =
+              '❌ Failed to create signed URL';
+            return;
+          }
 
-        const signedUrl = data.uploadUrl;
+          const signedUrl = await backendRes2.text();
+          console.log(signedUrl);
 
-        const uploadRes = await fetch(signedUrl, {
-          method: 'PUT',
-          body: file,
-          headers: {
-            'Content-Type': file.type,
-          },
-        });
+          const uploadRes = await fetch(signedUrl, {
+            method: 'PUT',
+            body: file,
+            headers: { 'Content-Type': file.type },
+          });
 
-        if (uploadRes.ok) {
-          document.getElementById('status').innerText =
-            '✅ Movie uploaded successfully!';
-        } else {
-          document.getElementById('status').innerText =
-            '❌ Failed to upload video file to MinIO!';
+          if (uploadRes.ok) {
+            document.getElementById('status').innerText =
+              '✅ Movie uploaded successfully!';
+          } else {
+            document.getElementById('status').innerText =
+              '❌ Failed to upload video file to MinIO!';
+          }
+        } catch (err) {
+          console.error(err);
+          document.getElementById('status').innerText = '❌ An error occurred!';
         }
       }
     </script>

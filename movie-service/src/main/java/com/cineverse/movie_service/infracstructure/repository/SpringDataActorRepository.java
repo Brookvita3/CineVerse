@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface SpringDataActorRepository extends JpaRepository<Actor, UUID> {
+public interface SpringDataActorRepository extends JpaRepository<Actor, String> {
 }

@@ -21,7 +21,7 @@ public class JpaMovieRepositoryImpl implements MovieRepository {
     }
 
     @Override
-    public Optional<Movie> findById(UUID id) {
+    public Optional<Movie> findById(String id) {
         return springDataRepo.findById(id);
     }
 

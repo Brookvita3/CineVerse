@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
@@ -20,7 +19,7 @@ public class UpdateMovieCommand {
 
     private List<Genre> genres;
 
-    private List<UUID> actorIds;
+    private List<String> actorIds;
 
     private String thumbnailUrl;
 

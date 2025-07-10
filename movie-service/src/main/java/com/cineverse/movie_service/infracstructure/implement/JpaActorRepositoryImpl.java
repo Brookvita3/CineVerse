@@ -16,7 +16,7 @@ public class JpaActorRepositoryImpl implements ActorRepository {
     private final SpringDataActorRepository springDataRepo;
 
     @Override
-    public Optional<Actor> findById(UUID id) {
+    public Optional<Actor> findById(String id) {
         return springDataRepo.findById(id);
     }
 }

@@ -1,10 +1,9 @@
 package com.cineverse.movie_service.domain.model;
 
+import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @Getter
 @Entity
@@ -13,8 +12,14 @@ import java.util.UUID;
 public class Actor {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     private String name;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null || id.isEmpty()) {
+            this.id = NanoIdUtils.randomNanoId(NanoIdUtils.DEFAULT_NUMBER_GENERATOR, NanoIdUtils.DEFAULT_ALPHABET, 7);
+        }
+    }
 }

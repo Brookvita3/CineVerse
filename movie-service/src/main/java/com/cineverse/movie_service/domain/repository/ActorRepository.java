@@ -6,5 +6,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ActorRepository {
-    Optional<Actor> findById(UUID id);
+    Optional<Actor> findById(String id);
 }

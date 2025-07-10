@@ -1,0 +1,13 @@
+{
+  "amqp": {
+    "upload": {
+      "enable": true,
+      "url": "amqp://guest:guest@rabbitmq:5672",
+      "exchange": "upload-event",
+      "exchange_type": "topic",
+      "routing_key": "minio.upload",
+      "durable": true,
+      "delivery_mode": 1
+    }
+  }
+}

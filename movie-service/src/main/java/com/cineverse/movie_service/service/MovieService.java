@@ -9,13 +9,10 @@ import com.cineverse.movie_service.application.command.UploadMovieCommand;
 import com.cineverse.movie_service.dto.MovieDTO;
 import com.cineverse.movie_service.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -25,9 +22,6 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final ActorRepository actorRepository;
     private final RestTemplate restTemplate = new RestTemplate();
-
-    @Value("${streaming-service.base-url}")
-    private String streamingServiceBaseUrl;
 
     /**
      * Uploads metadata for a new movie and returns a signed URL for uploading the
@@ -56,7 +50,7 @@ public class MovieService {
      * @throws RestClientException      if the request to the streaming service
      *                                  fails.
      */
-    public String uploadMovie(UploadMovieCommand command) {
+    public Movie uploadMovie(UploadMovieCommand command) {
 
         if (movieRepository.existsByTitle(command.getTitle())) {
             throw new IllegalArgumentException("Movie is already exist");
@@ -65,18 +59,10 @@ public class MovieService {
         MovieDTO movieDTO = fromUploadMovieCommand(command);
 
         Movie movie = Movie.upload(movieDTO);
-        movieRepository.save(movie);
-
-        String fileName = command.getMovieFileName();
-        String signedUrlEndpoint = streamingServiceBaseUrl + "/signed-url/upload";
-
-        Map<String, String> body = new HashMap<>();
-        body.put("FileName", fileName);
-
-        return restTemplate.postForObject(signedUrlEndpoint, body, String.class);
+        return movieRepository.save(movie);
     }
 
-    public void updateMovie(UUID movieId, UpdateMovieCommand command) {
+    public void updateMovie(String movieId, UpdateMovieCommand command) {
 
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new NotFoundException("Movie not found"));
@@ -87,12 +73,21 @@ public class MovieService {
         movieRepository.save(movie);
     }
 
-    public Movie markReady(UUID movieId) {
+    public Movie markReady(String movieId) {
 
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new NotFoundException("Movie not found"));
 
-        movie.markReady();
+        movie.ready();
+        return movieRepository.save(movie);
+    }
+
+    public Movie markFailed(String movieId) {
+
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new NotFoundException("Movie not found"));
+
+        movie.failed();
         return movieRepository.save(movie);
     }
 
