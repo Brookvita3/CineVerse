@@ -22,3 +22,6 @@ minio:
   access-key: ${MINIO_ACCESS_KEY}
   secret-key: ${MINIO_SECRET_KEY}
   bucket: movies
+
+opa:
+  url: ${OPA_URL}

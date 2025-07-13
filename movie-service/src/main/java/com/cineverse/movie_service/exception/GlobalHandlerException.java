@@ -25,6 +25,12 @@ public class GlobalHandlerException {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(AccessDeniedException ex) {
+        log.error("error ", ex);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(RestClientException.class)
     public ResponseEntity<Map<String, String>> handleRestClientException(RestClientException ex) {
         log.error("error ", ex);
