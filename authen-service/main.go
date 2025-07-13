@@ -1,28 +1,19 @@
 package main
 
 import (
-	"authen-service/handler"
+	"authen-service/config"
+	"authen-service/internal/jwks"
+	"authen-service/router"
 	"log"
-	"net/http"
-	"os"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	cfg := config.Load()
 
-	http.HandleFunc("/auth", handler.AuthHandler)
-	http.HandleFunc("/login", handler.LoginHandler)
+	jwks.Init(cfg.JWKSURL)
 
-	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("pong"))
-	})
+	r := router.SetupRouter(cfg)
 
-	log.Println("Auth service listening on :9090...")
-	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), nil))
+	log.Println("Listening on {}", cfg.Port)
+	r.Run(cfg.Port)
 }
