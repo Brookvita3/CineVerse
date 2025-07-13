@@ -1,33 +1,38 @@
 http:
   routers:
     authen:
-      rule: PathPrefix(`/auth`)
-      service: auth-service
+      rule: PathPrefix(`/authen`)
+      service: authen-service
       entryPoints:
         - web
     login:
       rule: PathPrefix(`/login`)
-      service: auth-service
+      service: authen-service
       entryPoints:
         - web
-    ping:
-      rule: 'PathPrefix(`/ping`)'
+    upload-movie:
+      rule: 'PathPrefix(`/movies`)'
       entryPoints:
         - web
-      service: auth-service
+      service: movie-service
       middlewares:
-        - forward-auth
+        - authen-middleware
 
   services:
-    auth-service:
+    authen-service:
       loadBalancer:
         servers:
           - url: http://host.docker.internal:9090
+    movie-service:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:8080
 
   middlewares:
-    forward-auth:
+    authen-middleware:
       forwardAuth:
-        address: http://host.docker.internal:9090/auth
+        address: http://host.docker.internal:9090/authen
         trustForwardHeader: true
         authResponseHeaders:
           - 'X-User'
+          - 'X-Role'
