@@ -71,15 +71,6 @@ public class MovieService {
         movieRepository.save(movie);
     }
 
-    public Movie markReady(String movieId) {
-
-        Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new NotFoundException("Movie not found"));
-
-        movie.ready();
-        return movieRepository.save(movie);
-    }
-
     public Movie markFailed(String movieId) {
 
         Movie movie = movieRepository.findById(movieId)

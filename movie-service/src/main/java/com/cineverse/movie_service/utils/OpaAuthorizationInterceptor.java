@@ -1,7 +1,6 @@
-package com.cineverse.movie_service.configuration.inceptor;
+package com.cineverse.movie_service.utils;
 
 import com.cineverse.movie_service.exception.AccessDeniedException;
-import com.cineverse.movie_service.utils.OPAUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

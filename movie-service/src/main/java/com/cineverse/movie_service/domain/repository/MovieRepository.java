@@ -10,4 +10,6 @@ public interface MovieRepository {
     Optional<Movie> findById(String id);
 
     Movie save(Movie movie);
+
+    Optional<Movie> findByTitle(String title);
 }

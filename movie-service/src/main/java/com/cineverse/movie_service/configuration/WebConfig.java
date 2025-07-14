@@ -1,6 +1,6 @@
 package com.cineverse.movie_service.configuration;
 
-import com.cineverse.movie_service.configuration.inceptor.OpaAuthorizationInterceptor;
+import com.cineverse.movie_service.utils.OpaAuthorizationInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

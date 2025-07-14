@@ -26,6 +26,11 @@ public class JpaMovieRepositoryImpl implements MovieRepository {
     }
 
     @Override
+    public Optional<Movie> findByTitle(String title) {
+        return springDataRepo.findByTitle(title);
+    }
+
+    @Override
     public Movie save(Movie movie) {
         return springDataRepo.save(movie);
     }

@@ -42,15 +42,6 @@ public class MovieController {
                 .body(signedUrl);
     }
 
-    @PostMapping("/{movieId}/upload-complete`")
-    public ResponseEntity<?> confirmUpload(@PathVariable String movieId) {
-
-        Movie movie = movieService.markReady(movieId);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(movie);
-    }
-
     @PutMapping("/update")
     public ResponseEntity<?> updateMovie(
             @PathVariable String movieId,
