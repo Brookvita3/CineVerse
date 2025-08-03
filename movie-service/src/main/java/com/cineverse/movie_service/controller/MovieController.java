@@ -19,10 +19,6 @@ public class MovieController {
     private final MovieService movieService;
     private final MinioService minioService;
 
-    @GetMapping("/ping")
-    public String ping() {
-        return "🎬 Hello from Spring Boot Movie Service!";
-    }
 
     @PostMapping("")
     public ResponseEntity<?> uploadMovieMetadata(@RequestBody @Valid UploadMovieCommand request) {
@@ -33,7 +29,7 @@ public class MovieController {
                 .body(movie);
     }
 
-    @PostMapping("/{movieId}/upload-url")
+    @GetMapping("/{movieId}/upload-url")
     public ResponseEntity<?> createUploadUrl(@PathVariable String movieId) {
 
         String signedUrl = minioService.generatePresignedUploadUrl(movieId, 15);

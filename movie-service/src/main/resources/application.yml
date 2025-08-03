@@ -30,3 +30,8 @@ minio:
 
 opa:
   url: ${OPA_URL}
+
+logging:
+  level:
+    org:
+      flywaydb=DEBUG:

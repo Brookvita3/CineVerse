@@ -9,7 +9,7 @@ allow if {
 }
 
 allow if {
-  input.method == "POST"
+  input.method == "GET"
   count(input.path) == 3
   input.path[0] == "movies"
   input.path[2] == "upload-url"

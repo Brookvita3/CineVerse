@@ -28,11 +28,12 @@ public class UploadEventConsumer {
 
             for (MinioUploadDTO.Record record : event.getRecords()) {
                 String key = record.getS3().getObject().getKey();
+                String movieTitle = key.substring(0, key.lastIndexOf("."));
                 String bucket = record.getS3().getBucket().getName();
                 String contentType = record.getS3().getObject().getContentType();
 
-                System.out.printf("File uploaded: [%s] in bucket [%s] (type: %s)%n", key, bucket, contentType);
-                Movie movie = movieRepository.findByTitle(key).orElseThrow(() -> new NotFoundException("movie not found"));
+                System.out.printf("File uploaded: [%s] in bucket [%s] with title [%s] (type: %s)%n", key, bucket, contentType, movieTitle);
+                Movie movie = movieRepository.findByTitle(movieTitle).orElseThrow(() -> new NotFoundException("movie not found"));
                 movie.ready();
                 movieRepository.save(movie);
             }
