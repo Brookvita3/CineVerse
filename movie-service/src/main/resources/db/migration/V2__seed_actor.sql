@@ -1,1 +1,0 @@
-INSERT INTO actor (id, name) VALUES ('ktn7xVb', 'Robert Downey Jr.');

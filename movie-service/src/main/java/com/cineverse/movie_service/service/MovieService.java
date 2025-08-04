@@ -92,6 +92,7 @@ public class MovieService {
 
         movieDTO.setActors(actors);
         movieDTO.setTitle(command.getTitle());
+        movieDTO.setGenres(command.getGenres());
         movieDTO.setDescription(command.getDescription());
         movieDTO.setIsPublic(command.getIsPublic());
         movieDTO.setThumbnailUrl(command.getThumbnailUrl());

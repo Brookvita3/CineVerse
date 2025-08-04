@@ -1,21 +1,24 @@
 version: '3.9'
 
 services:
-  traefik:
-    image: traefik:v3
-    container_name: traefik
-    command:
-      - '--configFile=/etc/traefik/traefik.yml'
+  keycloak:
+    image: keycloak/keycloak:26.3
+    container_name: keycloak1
+    restart: unless-stopped
+    command: start-dev
     ports:
-      - '80:80'
-      - '8080:8080'
+      - 8081:8080
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock:ro'
-      - './traefik/traefik.yml:/etc/traefik/traefik.yml:ro'
+      - keycloak-data:/opt/keycloak/data
+    networks:
+      - mynetwork
 
   minio:
     image: minio/minio:RELEASE.2025-06-13T11-33-47Z
-    container_name: minio
+    container_name: minio1
     ports:
       - '9000:9000' # S3 API
       - '9001:9001' # Web UI
@@ -25,23 +28,78 @@ services:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     command: server --console-address ":9001" /data
+    networks:
+      - mynetwork
 
-  movie-service:
-    build: ./movie-service
-    container_name: movie-service
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.movie-service.rule=PathPrefix(`/movies`)'
-      - 'traefik.http.routers.movie-service.entrypoints=web'
-      - 'traefik.http.services.movie-service.loadbalancer.server.port=8080'
-    expose:
-      - '8080'
+  opa:
+    image: openpolicyagent/opa:edge-debug
+    container_name: opa1
+    command:
+      - 'run'
+      - '--server'
+      - '--log-level=debug'
+      - '--set=decision_logs.console=true'
+      - '--addr=0.0.0.0:8181'
+      - '/policy'
+    volumes:
+      - ./opa/policies:/policy
+    ports:
+      - 8181:8181
+    networks:
+      - mynetwork
 
-  streaming-service:
-    build: ./streaming-service
-    container_name: streaming-service
-    expose:
-      - '7070'
+  postgres:
+    image: postgres:14
+    container_name: postgres1
+    environment:
+      POSTGRES_DB: Movie
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - '5432:5432'
+    networks:
+      - mynetwork
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    container_name: rabbitmq1
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - mynetwork
+
+  traefik:
+    image: traefik:v3
+    container_name: traefik1
+    ports:
+      - '80:80'
+    command:
+      - '--configFile=/etc/traefik/traefik.yml'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+    networks:
+      - mynetwork
 
 volumes:
   minio-data:
+    external: true
+  keycloak-data:
+    external: true
+  pgdata:
+    external: true
+  rabbitmq-data:
+    external: true
+
+networks:
+  mynetwork:
+    external: true

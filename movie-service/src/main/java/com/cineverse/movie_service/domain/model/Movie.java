@@ -26,6 +26,8 @@ public class Movie {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "movie_genres", joinColumns = @JoinColumn(name = "movie_id"))
+    @Column(name = "genre")
     private List<Genre> genres;
 
     @Enumerated(EnumType.STRING)

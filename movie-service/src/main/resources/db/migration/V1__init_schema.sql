@@ -1,8 +1,3 @@
-CREATE TABLE actor (
-  id VARCHAR(7) PRIMARY KEY,
-  name VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE movie (
   id VARCHAR(7) PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
@@ -16,14 +11,16 @@ CREATE TABLE movie (
   status VARCHAR(20)
 );
 
-CREATE TABLE genre (
-  name VARCHAR(20) PRIMARY KEY
+CREATE TABLE movie_genres (
+    movie_id VARCHAR(7) NOT NULL,
+    genre VARCHAR(20) NOT NULL,
+    PRIMARY KEY (movie_id, genre),
+    FOREIGN KEY (movie_id) REFERENCES movie(id) ON DELETE CASCADE
 );
 
-CREATE TABLE movie_genres (
-  movie_id VARCHAR(7) REFERENCES movie(id) ON DELETE CASCADE,
-  genres VARCHAR(20) REFERENCES genre(name) ON DELETE CASCADE,
-  PRIMARY KEY (movie_id, genres)
+CREATE TABLE actor (
+  id VARCHAR(7) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE movie_actor (
@@ -31,3 +28,5 @@ CREATE TABLE movie_actor (
   actor_id VARCHAR(7) REFERENCES actor(id) ON DELETE CASCADE,
   PRIMARY KEY (movie_id, actor_id)
 );
+
+INSERT INTO actor (id, name) VALUES ('ktn7xVb', 'Robert Downey Jr.');
