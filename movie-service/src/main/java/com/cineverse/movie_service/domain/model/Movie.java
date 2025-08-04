@@ -90,33 +90,6 @@ public class Movie {
         );
     }
 
-    public void update(MovieDTO dto) {
-        if (dto.getTitle() != null) {
-            this.title = dto.getTitle();
-        }
-        if (dto.getDescription() != null) {
-            this.description = dto.getDescription();
-        }
-        if (dto.getReleaseDate() != null) {
-            this.releaseDate = dto.getReleaseDate();
-        }
-        if (dto.getGenres() != null) {
-            this.genres = dto.getGenres();
-        }
-        if (dto.getActors() != null) {
-            this.actors = dto.getActors();
-        }
-        if (dto.getThumbnailUrl() != null) {
-            this.thumbnailUrl = dto.getThumbnailUrl();
-        }
-        if (dto.getMovieFileName() != null) {
-            this.movieFileName = dto.getMovieFileName();
-        }
-        if (dto.getIsPublic() != null) {
-            this.isPublic = dto.getIsPublic();
-        }
-    }
-
     public void ready() {
         this.status = Status.READY;
         this.updatedAt = Instant.now();

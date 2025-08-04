@@ -2,7 +2,7 @@ package com.cineverse.movie_service.infracstructure;
 
 import com.cineverse.movie_service.domain.model.Movie;
 import com.cineverse.movie_service.domain.repository.MovieRepository;
-import com.cineverse.movie_service.dto.MinioUploadDTO;
+import com.cineverse.movie_service.dto.UploadDoneEvent;
 import com.cineverse.movie_service.exception.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -20,23 +20,16 @@ public class UploadEventConsumer {
     @RabbitListener(queues = "minio-upload-queue")
     public void onMessage(String messageJson) {
         try {
-            MinioUploadDTO event = mapper.readValue(messageJson, MinioUploadDTO.class);
+            UploadDoneEvent event = mapper.readValue(messageJson, UploadDoneEvent.class);
+            String movieTitle = event.getTitle();
 
-            if (event.getRecords() == null || event.getRecords().isEmpty()) {
-                throw new RuntimeException("Error while parse messageJson");
-            }
+            System.out.println("Transcode done, title: " + movieTitle);
 
-            for (MinioUploadDTO.Record record : event.getRecords()) {
-                String key = record.getS3().getObject().getKey();
-                String movieTitle = key.substring(0, key.lastIndexOf("."));
-                String bucket = record.getS3().getBucket().getName();
-                String contentType = record.getS3().getObject().getContentType();
+            Movie movie = movieRepository.findByTitle(movieTitle)
+                    .orElseThrow(() -> new NotFoundException("Movie not found"));
 
-                System.out.printf("File uploaded: [%s] in bucket [%s] with title [%s] (type: %s)%n", key, bucket, contentType, movieTitle);
-                Movie movie = movieRepository.findByTitle(movieTitle).orElseThrow(() -> new NotFoundException("movie not found"));
-                movie.ready();
-                movieRepository.save(movie);
-            }
+            movie.ready();
+            movieRepository.save(movie);
 
         } catch (Exception e) {
             throw new RuntimeException("Error while mark movie ready", e);

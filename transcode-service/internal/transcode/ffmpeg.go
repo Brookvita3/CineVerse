@@ -13,30 +13,28 @@ import (
 )
 
 func Process(filename string, cfg config.Config) {
-	// B0: Tạo thư mục chứa file tải về
+	// B0: Create rawmovies folder
 	rawMoviesDir := "/rawmovies"
 	if err := os.MkdirAll(rawMoviesDir, 0755); err != nil {
-		fmt.Println("❌ Không thể tạo thư mục rawmovies:", err)
+		fmt.Println("Can't create rawmovies folder:", err)
 		return
 	}
 
-	// B1: Tải file từ MinIO về local
-	fmt.Println("⬇️ Tải file từ MinIO:", filename)
+	// B1: Download from MinIO
+	fmt.Println("Download from MinIO: ", filename)
 	localInputPath := filepath.Join(rawMoviesDir, filename)
 	err := downloader.DownloadFromMinio(filename, localInputPath, cfg)
 	if err != nil {
-		fmt.Println("❌ Lỗi tải file:", err)
+		fmt.Println("error while downloading from MinIO: ", err)
 		return
 	}
 
-	// B2: Chuẩn bị đường dẫn output
+	// B2: Prepare output dir
 	nameOnly := strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))
 	outputDir := filepath.Join("/tmp/hls", nameOnly)
 	outputFile := filepath.Join(outputDir, "index.m3u8")
-
-	// B3: Tạo thư mục output
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
-		fmt.Println("❌ Không thể tạo thư mục output:", err)
+		fmt.Println("error while creating output directory: ", err)
 		return
 	}
 
@@ -53,13 +51,20 @@ func Process(filename string, cfg config.Config) {
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	fmt.Println("🎞️ Bắt đầu transcode:", filename)
+	fmt.Printf("Transcoding %s...", filename)
 	if err := cmd.Run(); err != nil {
-		fmt.Println("❌ Transcode lỗi:", err)
+		fmt.Println("error while transcoding: ", err)
 		return
 	}
-	fmt.Println("✅ Transcode hoàn tất:", outputFile)
+	fmt.Println("Transcoding done", outputFile)
 
-	// B5: Upload kết quả
+	// B5: Upload result to MinIO
 	uploader.UploadFolder(outputDir, "movies/"+nameOnly, cfg)
+
+	// B6: Delet file local after process
+	if err := os.Remove(localInputPath); err != nil {
+		fmt.Println("Failed to delete original file:", err)
+	} else {
+		fmt.Println("Deleted original file:", localInputPath)
+	}
 }

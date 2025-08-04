@@ -9,6 +9,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"transcode-service/config"
+	"transcode-service/internal/publisher"
 )
 
 func UploadFolder(localDir, remotePrefix string, cfg config.Config) {
@@ -42,6 +43,9 @@ func UploadFolder(localDir, remotePrefix string, cfg config.Config) {
 		}
 		return nil
 	})
+
+	folderName := filepath.Base(localDir)
+	err = publisher.PublishUploadDone(cfg, folderName)
 
 	if err != nil {
 		fmt.Println("Upload folder failed:", err)

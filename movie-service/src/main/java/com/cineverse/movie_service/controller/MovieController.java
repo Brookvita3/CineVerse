@@ -38,15 +38,5 @@ public class MovieController {
                 .body(signedUrl);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<?> updateMovie(
-            @PathVariable String movieId,
-            @RequestBody @Valid UpdateMovieCommand request) {
-
-        movieService.updateMovie(movieId, request);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("update successfully");
-    }
 
 }

@@ -60,25 +60,6 @@ public class MovieService {
         return movieRepository.save(movie);
     }
 
-    public void updateMovie(String movieId, UpdateMovieCommand command) {
-
-        Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new NotFoundException("Movie not found"));
-
-        MovieDTO movieDTO = fromUpdateMovieCommand(command);
-        movie.update(movieDTO);
-
-        movieRepository.save(movie);
-    }
-
-    public Movie markFailed(String movieId) {
-
-        Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new NotFoundException("Movie not found"));
-
-        movie.failed();
-        return movieRepository.save(movie);
-    }
 
     private MovieDTO fromUploadMovieCommand(UploadMovieCommand command) {
         if (command == null)
@@ -93,28 +74,6 @@ public class MovieService {
         movieDTO.setActors(actors);
         movieDTO.setTitle(command.getTitle());
         movieDTO.setGenres(command.getGenres());
-        movieDTO.setDescription(command.getDescription());
-        movieDTO.setIsPublic(command.getIsPublic());
-        movieDTO.setThumbnailUrl(command.getThumbnailUrl());
-        movieDTO.setMovieFileName(command.getMovieFileName());
-        movieDTO.setReleaseDate(command.getReleaseDate());
-        movieDTO.setThumbnailUrl(command.getThumbnailUrl());
-
-        return movieDTO;
-    }
-
-    private MovieDTO fromUpdateMovieCommand(UpdateMovieCommand command) {
-        if (command == null)
-            return null;
-        List<Actor> actors = command.getActorIds().stream()
-                .map(id -> actorRepository.findById(id)
-                        .orElseThrow(() -> new NotFoundException("Actor not found")))
-                .toList();
-
-        MovieDTO movieDTO = new MovieDTO();
-
-        movieDTO.setActors(actors);
-        movieDTO.setTitle(command.getTitle());
         movieDTO.setDescription(command.getDescription());
         movieDTO.setIsPublic(command.getIsPublic());
         movieDTO.setThumbnailUrl(command.getThumbnailUrl());

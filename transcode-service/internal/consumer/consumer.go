@@ -11,11 +11,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type UploadEvent struct {
-	Filename string `json:"Key"`
-}
-
-type MinIOEvent struct {
+type TranscodeEvent struct {
 	EventName string `json:"EventName"`
 	Key       string `json:"Key"`
 	Records   []struct {
@@ -77,7 +73,7 @@ func StartRabbitMQListener(cfg config.Config) error {
 	go func() {
 		for msg := range msgs {
 
-			var event MinIOEvent
+			var event TranscodeEvent
 			if err := json.Unmarshal(msg.Body, &event); err != nil {
 				log.Printf("Failed to parse MinIO event: %v\n", err)
 				continue
