@@ -1,5 +1,6 @@
 package com.cineverse.movie_service.service;
 
+import com.cineverse.movie_service.application.command.StreamMovieCommand;
 import com.cineverse.movie_service.domain.model.Actor;
 import com.cineverse.movie_service.domain.model.Movie;
 import com.cineverse.movie_service.domain.repository.ActorRepository;
@@ -49,6 +50,19 @@ public class MovieService {
      *                                  fails.
      */
     public Movie uploadMovie(UploadMovieCommand command) {
+
+        if (movieRepository.existsByTitle(command.getTitle())) {
+            throw new IllegalArgumentException("Movie is already exist");
+        }
+
+        MovieDTO movieDTO = fromUploadMovieCommand(command);
+
+        Movie movie = Movie.upload(movieDTO);
+        return movieRepository.save(movie);
+    }
+
+
+    public Movie streamMovie(StreamMovieCommand command) {
 
         if (movieRepository.existsByTitle(command.getTitle())) {
             throw new IllegalArgumentException("Movie is already exist");

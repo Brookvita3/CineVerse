@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Video.js HLS Player with Chat</title>
+
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <style>
+      body {
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+        padding: 40px;
+        gap: 20px;
+      }
+      .video-js {
+        width: 60%;
+        max-width: 800px;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      #chat-container {
+        width: 300px;
+        background: #222;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 450px;
+      }
+      #messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        border: 1px solid #555;
+        padding: 5px;
+        margin-bottom: 10px;
+        background: #111;
+        border-radius: 6px;
+      }
+      #message-input {
+        width: 100%;
+        padding: 8px;
+        border-radius: 6px;
+        border: none;
+        margin-bottom: 5px;
+        font-size: 14px;
+      }
+      #send-btn {
+        padding: 8px;
+        background-color: #0084ff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      #send-btn:hover {
+        background-color: #005fcc;
+      }
+    </style>
+  </head>
+
+  <body>
+    <video
+      id="my-player"
+      controls
+      width="800"
+      poster="https://via.placeholder.com/1280x720?text=Video+Preview"
+    ></video>
+    <script>
+      const video = document.getElementById('my-player');
+      const hls = new Hls();
+
+      // URL tới file .m3u8 trên MinIO hoặc proxy
+      const hlsUrl = 'http://localhost:8080/hls/video.m3u8';
+
+      if (Hls.isSupported()) {
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          video.play();
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Cho Safari hoặc iOS
+        video.src = hlsUrl;
+        video.addEventListener('loadedmetadata', function () {
+          video.play();
+        });
+      }
+    </script>
+
+    <div id="chat-container">
+      <div id="messages"></div>
+      <input
+        id="message-input"
+        placeholder="Type a message..."
+        autocomplete="off"
+      />
+      <button id="send-btn">Send</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      socket.on('connect', () => {
+        console.log(`[Connected] ID: ${socket.id}`);
+      });
+
+      const messages = document.getElementById('messages');
+      const input = document.getElementById('message-input');
+      const sendBtn = document.getElementById('send-btn');
+
+      function appendMessage(msg) {
+        const div = document.createElement('div');
+        div.textContent = msg;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      sendBtn.onclick = () => {
+        const msg = input.value.trim();
+        if (msg.length > 0) {
+          socket.emit('chat message', msg);
+          console.log('User send message:', msg);
+          input.value = '';
+        }
+      };
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendBtn.onclick();
+      });
+
+      socket.on('chat message', (msg) => {
+        console.log('User receive message:', msg);
+        appendMessage(msg);
+      });
+    </script>
+  </body>
+</html>

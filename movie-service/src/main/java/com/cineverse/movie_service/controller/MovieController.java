@@ -19,6 +19,10 @@ public class MovieController {
     private final MovieService movieService;
     private final MinioService minioService;
 
+    @GetMapping("/ping")
+    public String ping() {
+        return "🎬 Hello from Spring Boot Movie Service!";
+    }
 
     @PostMapping("")
     public ResponseEntity<?> uploadMovieMetadata(@RequestBody @Valid UploadMovieCommand request) {
